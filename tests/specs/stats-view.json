@@ -1,0 +1,20 @@
+[
+  {
+    "name": "View Stats",
+    "steps": [
+      {
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": {
+              "text": "Show current streaks, completion rates, and weekly summaries"
+            }
+          }
+        ],
+        "send": {
+          "callback": "stats:view"
+        }
+      }
+    ]
+  }
+]
