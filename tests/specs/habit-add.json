@@ -1,20 +1,11 @@
 [
   {
-    "name": "Add Habit",
+    "name": "Create a daily habit with a reminder",
     "steps": [
-      {
-        "expect": [
-          {
-            "method": "sendMessage",
-            "payload": {
-              "text": "Begin creating a new habit with schedule and reminder configuration"
-            }
-          }
-        ],
-        "send": {
-          "callback": "habit:add"
-        }
-      }
+      { "send": { "callback": "habit:add" }, "expect": [{ "method": "sendMessage", "payload": { "text": "What would you like to make a habit? Send a short title." } }] },
+      { "send": { "text": "Read" }, "expect": [{ "method": "sendMessage", "payload": { "text": "How often would you like to do it?" } }] },
+      { "send": { "callback": "habit:schedule:daily" }, "expect": [{ "method": "editMessageText", "payload": { "text": "When should I remind you? Send one or two local times, like 08:00 or 08:00, 20:30." } }] },
+      { "send": { "text": "08:00" }, "expect": [{ "method": "sendMessage", "payload": { "text": "“Read” is ready. I’ll remind you at 08:00 in your UTC time zone." } }] }
     ]
   }
 ]

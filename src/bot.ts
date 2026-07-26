@@ -1,12 +1,17 @@
 import { Composer } from "grammy";
-import { createBot, type BotContext, type CreateBotOptions } from "./toolkit/index.js";
+import { createBot, resolveSessionStorage, type BotContext, type CreateBotOptions } from "./toolkit/index.js";
 import type { StorageAdapter } from "grammy";
 
 // The per-chat session shape (ephemeral conversation state only). Extend as the
 // bot grows. Durable domain data must NOT live here — use the toolkit's
 // persistent storage (see AGENTS.md).
 export interface Session {
-  // example: step?: "awaiting_amount";
+  step?: "habit_title" | "habit_times" | "edit_title" | "edit_times" | "timezone";
+  draft?: { id?: string; title?: string; schedule?: "daily" | "weekdays" | "weekly" };
+  // Domain data is serialized by the toolkit's configured storage adapter. In
+  // production that adapter is Redis/Workers Durable Object storage; no process
+  // memory is used for users' records.
+  habits?: import("./habits/core.js").UserData;
 }
 
 export type Ctx = BotContext<Session>;
@@ -43,11 +48,26 @@ export interface BuildBotOptions {
  * build-time manifest because Workers has no filesystem.
  */
 export async function buildBot(token: string, opts: BuildBotOptions = {}) {
+  // One adapter backs both short-lived conversation state and a separate
+  // per-chat domain record. Redis in Node and the Durable Object adapter in
+  // Workers make the habit record survive restarts without keyspace scans.
+  const storage = resolveSessionStorage<Session>(opts.storage);
   const bot = createBot<Session>(token, {
     initial: () => ({}),
-    storage: opts.storage,
+    storage,
     telemetryEnv: opts.telemetryEnv,
     telemetryReporterOptions: opts.telemetryReporterOptions,
+  });
+
+  bot.use(async (ctx, next) => {
+    const chatId = ctx.chat?.id;
+    const key = chatId === undefined ? undefined : `habits:${chatId}`;
+    if (key) {
+      const persisted = await storage.read(key);
+      if (persisted?.habits) ctx.session.habits = persisted.habits;
+    }
+    await next();
+    if (key && ctx.session.habits) await storage.write(key, { habits: ctx.session.habits });
   });
 
   const handlers = opts.handlers ?? (await loadHandlersFromDisk());

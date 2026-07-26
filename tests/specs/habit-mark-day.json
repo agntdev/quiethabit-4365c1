@@ -1,20 +1,3 @@
 [
-  {
-    "name": "Mark Day",
-    "steps": [
-      {
-        "expect": [
-          {
-            "method": "sendMessage",
-            "payload": {
-              "text": "Retroactively log a day's habit status up to 7 days back"
-            }
-          }
-        ],
-        "send": {
-          "callback": "habit:mark_day"
-        }
-      }
-    ]
-  }
+  { "name": "Mark a day has a helpful empty state", "steps": [{ "send": { "callback": "habit:mark_day" }, "expect": [{ "method": "sendMessage", "payload": { "text": "No habits yet — tap Add habit to create one." } }] }] }
 ]
