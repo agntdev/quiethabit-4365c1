@@ -1,20 +1,3 @@
 [
-  {
-    "name": "Edit Habit",
-    "steps": [
-      {
-        "expect": [
-          {
-            "method": "sendMessage",
-            "payload": {
-              "text": "Modify existing habit details like title, schedule, or reminders"
-            }
-          }
-        ],
-        "send": {
-          "callback": "habit:edit"
-        }
-      }
-    ]
-  }
+  { "name": "Edit has a warm empty state", "steps": [{ "send": { "callback": "habit:edit" }, "expect": [{ "method": "sendMessage", "payload": { "text": "No habits to edit yet — tap Add habit to create one." } }] }] }
 ]
